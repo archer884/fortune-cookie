@@ -3,11 +3,17 @@ extern crate regex;
 
 use std::io::Read;
 
+// We don't actually need Hyper in order to test the library, and including any code referencing
+// Hyper introduces a dependency on OpenSSL, which is a pain in the butt for testing, and so that
+// code is excluded for test compilation.
+
+#[cfg(not(test))]
 use hyper::Client;
 use regex::Regex;
 
 const COOKIE_PATTERN: &'static str = r#"<a.*?class="cookie-link">(<p>)?(?P<fortune>.*?)(</p>)?</a>"#;
 
+#[cfg(not(test))]
 pub fn cookie() -> Result<String, String> {
     match Client::new().get("http://www.fortunecookiemessage.com/").send() {
         Err(e) => Err(format!("{:?}", e)),
