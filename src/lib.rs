@@ -6,7 +6,7 @@ use std::io::Read;
 use hyper::Client;
 use regex::Regex;
 
-const COOKIE_PATTERN: &'static str = r#"<a.*?class="cookie-link">(.*?)</a>"#;
+const COOKIE_PATTERN: &'static str = r#"<a.*?class="cookie-link">(<p>)?(?P<fortune>.*?)(</p>)?</a>"#;
 
 pub fn cookie() -> Result<String, String> {
     match Client::new().get("http://www.fortunecookiemessage.com/").send() {
@@ -21,7 +21,7 @@ pub fn cookie() -> Result<String, String> {
 
 fn extract_fortune(content: &str) -> Option<String> {
     pattern().captures(content).and_then(|captures|
-        captures.at(1).map(|s| s.to_owned())
+        captures.name("fortune").map(|s| s.to_owned())
     )
 }
 
@@ -31,11 +31,21 @@ fn pattern() -> Regex {
 
 #[cfg(test)]
 mod tests {
-    use super::COOKIE_PATTERN;
+    use super::{COOKIE_PATTERN, extract_fortune};
     use regex::Regex;
 
     #[test]
     fn cookie_pattern_is_valid() {
         Regex::new(COOKIE_PATTERN).unwrap();
+    }
+
+    #[test]
+    fn pattern_extracts_valid_fortunes() {
+        let content_a = r#"<div id="message"> <div class="quote"><a href="cookie/8386-<p>Your-way-of-doing-what-other-people-do-their-way-is-what-makes-you-special.</p>" class="cookie-link"><p>Your way of doing what other people do their way is what makes you special.</p></a></div>   <div class="bottom-message"> <a href="learn_chinese.php"><strong>Learn Chinese</strong></a>: loan  = hot  asian <br><a href="/lotto_numbers.php"><strong>Lucky numbers (Lotto)</strong></a>: 39-7-17-18-41-24<br><a href="/pick3_numbers.php"><strong>Daily numbers (Pick3)</strong></a>: 840 </div> </div> "#;
+        let content_b = r#"<div id="message"> <div class="quote"><a href="cookie/8386-<p>Your-way-of-doing-what-other-people-do-their-way-is-what-makes-you-special.</p>" class="cookie-link">Your way of doing what other people do their way is what makes you special.</a></div>   <div class="bottom-message"> <a href="learn_chinese.php"><strong>Learn Chinese</strong></a>: loan  = hot  asian <br><a href="/lotto_numbers.php"><strong>Lucky numbers (Lotto)</strong></a>: 39-7-17-18-41-24<br><a href="/pick3_numbers.php"><strong>Daily numbers (Pick3)</strong></a>: 840 </div> </div> "#;
+        let fortune = "Your way of doing what other people do their way is what makes you special.";
+
+        assert_eq!(fortune, extract_fortune(content_a).unwrap());
+        assert_eq!(fortune, extract_fortune(content_b).unwrap());
     }
 }
