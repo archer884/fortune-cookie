@@ -6,3 +6,7 @@ authors = ["J/A <archer884@gmail.com>"]
 [dependencies]
 hyper = "*"
 regex = "*"
+
+[features]
+default = ["ssl"]
+ssl = ["hyper/ssl"]
