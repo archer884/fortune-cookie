@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["J/A <archer884@gmail.com>"]
 
 [dependencies]
-hyper = {version = "*", default-features = false}
+hyper = "*"
 regex = "*"

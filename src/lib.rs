@@ -27,7 +27,7 @@ pub fn cookie() -> Result<String, String> {
 
 fn extract_fortune(content: &str) -> Option<String> {
     pattern().captures(content).and_then(|captures|
-        captures.name("fortune").map(|s| s.to_owned())
+        captures.name("fortune").map(|s| s.as_str().to_string())
     )
 }
 
